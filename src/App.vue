@@ -10,6 +10,9 @@
         </button>
         <SaveManager 
           :slots="saveSlots"
+          :getSlotData="getSaveSlotData"
+          :getCurrentState="getCurrentGameState"
+          :compareSaves="compareSaves"
           @save="handleSave"
           @load="handleLoad"
           @delete="handleDelete"
@@ -130,6 +133,9 @@ const {
   saveGame,
   loadGame,
   getSaveSlots,
+  getSaveSlotData,
+  getCurrentGameState,
+  compareSaves,
   deleteSave,
   restartGame
 } = useGame()

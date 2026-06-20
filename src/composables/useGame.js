@@ -292,6 +292,79 @@ export function useGame() {
     return slots
   }
 
+  function getSaveSlotData(slot) {
+    const saved = localStorage.getItem(`snowSurvival_${slot}`)
+    if (!saved) return null
+    try {
+      return JSON.parse(saved)
+    } catch (e) {
+      return null
+    }
+  }
+
+  function getCurrentGameState() {
+    return {
+      temperature: temperature.value,
+      heat: heat.value,
+      wood: wood.value,
+      food: food.value,
+      hide: hide.value,
+      tools: tools.value,
+      isDay: isDay.value,
+      dayCount: dayCount.value,
+      isBlizzard: isBlizzard.value
+    }
+  }
+
+  function compareSaves(currentState, targetState) {
+    const resources = ['wood', 'food', 'hide', 'tools', 'heat', 'temperature']
+    const risks = ['dayCount', 'isDay', 'isBlizzard']
+    
+    const resourceChanges = {}
+    const riskChanges = {}
+    
+    resources.forEach(key => {
+      const current = currentState[key]
+      const target = targetState[key]
+      const diff = target - current
+      resourceChanges[key] = {
+        current,
+        target,
+        diff,
+        isPositive: diff > 0,
+        isNegative: diff < 0,
+        isSame: diff === 0
+      }
+    })
+    
+    risks.forEach(key => {
+      const current = currentState[key]
+      const target = targetState[key]
+      riskChanges[key] = {
+        current,
+        target,
+        isSame: current === target
+      }
+    })
+    
+    const currentDanger = currentState.temperature < 30
+    const targetDanger = targetState.temperature < 30
+    riskChanges.danger = {
+      current: currentDanger,
+      target: targetDanger,
+      isSame: currentDanger === targetDanger,
+      level: {
+        current: currentState.temperature < 20 ? 'critical' : currentDanger ? 'danger' : 'safe',
+        target: targetState.temperature < 20 ? 'critical' : targetDanger ? 'danger' : 'safe'
+      }
+    }
+    
+    return {
+      resources: resourceChanges,
+      risks: riskChanges
+    }
+  }
+
   function deleteSave(slot) {
     localStorage.removeItem(`snowSurvival_${slot}`)
     addLog(`已删除存档：${slot}`, 'info')
@@ -352,6 +425,9 @@ export function useGame() {
     saveGame,
     loadGame,
     getSaveSlots,
+    getSaveSlotData,
+    getCurrentGameState,
+    compareSaves,
     deleteSave,
     restartGame
   }
